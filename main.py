@@ -113,13 +113,9 @@ class AudioLinkApp:
                         self._update_menu()
                 return handler
             
-            # Check if this device is currently selected
-            is_selected = (current_device1_id == device_id)
-            checkmark = "✓ " if is_selected else ""
-            
             device_items.append(
                 item(
-                    f"{checkmark}{device_name[:38]}",
+                    device_name[:38],
                     make_handler(device_id, device_name),
                     checked=lambda item, did=device_id: current_device1_id == did
                 )
@@ -147,13 +143,9 @@ class AudioLinkApp:
                         self._update_menu()
                 return handler
             
-            # Check if this device is currently selected
-            is_selected = (current_device2_id == device_id)
-            checkmark = "✓ " if is_selected else ""
-            
             device_items.append(
                 item(
-                    f"{checkmark}{device_name[:38]}",
+                    device_name[:38],
                     make_handler(device_id, device_name),
                     checked=lambda item, did=device_id: current_device2_id == did
                 )
@@ -181,16 +173,13 @@ class AudioLinkApp:
     
     def _create_menu(self) -> Menu:
         """Create the system tray menu."""
-        linking_state = "✓ " if self.linker.is_enabled() else ""
-        auto_start_state = "✓ " if is_auto_start_enabled() else ""
-        
         menu_items = [
-            item(f"{linking_state}Linking Enabled", self._toggle_linking, checked=lambda item: self.linker.is_enabled()),
+            item("Linking Enabled", self._toggle_linking, checked=lambda item: self.linker.is_enabled()),
             item("---", None),
             item(f"Device 1: {self._get_device1_name()}", self._create_device1_menu()),
             item(f"Device 2: {self._get_device2_name()}", self._create_device2_menu()),
             item("---", None),
-            item(f"{auto_start_state}Auto-start", self._toggle_auto_start, checked=lambda item: is_auto_start_enabled()),
+            item("Auto-start", self._toggle_auto_start, checked=lambda item: is_auto_start_enabled()),
             item("---", None),
             item("Exit", self._on_exit)
         ]
