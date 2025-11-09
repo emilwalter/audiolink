@@ -99,6 +99,9 @@ class AudioLinkApp:
         if not devices:
             return Menu(item("No devices found", None))
         
+        # Get current device 1 ID for checkmark
+        current_device1_id, _ = self.config.get_device1()
+        
         device_items = []
         for device_id, device_name in devices:
             def make_handler(did, dname):
@@ -110,7 +113,17 @@ class AudioLinkApp:
                         self._update_menu()
                 return handler
             
-            device_items.append(item(device_name[:40], make_handler(device_id, device_name)))
+            # Check if this device is currently selected
+            is_selected = (current_device1_id == device_id)
+            checkmark = "✓ " if is_selected else ""
+            
+            device_items.append(
+                item(
+                    f"{checkmark}{device_name[:38]}",
+                    make_handler(device_id, device_name),
+                    checked=lambda item, did=device_id: current_device1_id == did
+                )
+            )
         
         return Menu(*device_items)
     
@@ -119,6 +132,9 @@ class AudioLinkApp:
         devices = get_all_audio_devices()
         if not devices:
             return Menu(item("No devices found", None))
+        
+        # Get current device 2 ID for checkmark
+        current_device2_id, _ = self.config.get_device2()
         
         device_items = []
         for device_id, device_name in devices:
@@ -131,7 +147,17 @@ class AudioLinkApp:
                         self._update_menu()
                 return handler
             
-            device_items.append(item(device_name[:40], make_handler(device_id, device_name)))
+            # Check if this device is currently selected
+            is_selected = (current_device2_id == device_id)
+            checkmark = "✓ " if is_selected else ""
+            
+            device_items.append(
+                item(
+                    f"{checkmark}{device_name[:38]}",
+                    make_handler(device_id, device_name),
+                    checked=lambda item, did=device_id: current_device2_id == did
+                )
+            )
         
         return Menu(*device_items)
     
