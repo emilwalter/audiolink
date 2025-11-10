@@ -90,5 +90,5 @@ The application uses the Windows Core Audio API (via `pycaw`) to:
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-Copyright (c) 2024 Emil Walter
+Copyright (c) 2025 Emil Walter
 
