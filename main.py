@@ -1,13 +1,20 @@
 """Main application entry point for Audio Device Volume Linker."""
 import sys
 import threading
+import time
 from typing import Optional
 from PIL import Image, ImageDraw
 import pystray
 from pystray import MenuItem as item, Menu
 
 from config_manager import ConfigManager
-from audio_linker import AudioLinker, AudioDevice, find_device_by_id, get_all_audio_devices
+from audio_linker import (
+    AudioLinker,
+    AudioDevice,
+    find_device_by_id,
+    find_device_by_name,
+    get_all_audio_devices,
+)
 from auto_start import is_auto_start_enabled, toggle_auto_start
 
 
@@ -30,19 +37,37 @@ class AudioLinkApp:
         device1_id, device1_name = self.config.get_device1()
         device2_id, device2_name = self.config.get_device2()
         
-        if device1_id:
-            self.device1 = find_device_by_id(device1_id)
-            if not self.device1 and device1_name:
-                # Try to find by name if ID lookup fails
-                self.device1 = AudioDevice(device1_id, device1_name)
-                self.device1.initialize()
+        if device1_id or device1_name:
+            self.device1 = self._resolve_device(device1_id, device1_name, "device1")
         
-        if device2_id:
-            self.device2 = find_device_by_id(device2_id)
-            if not self.device2 and device2_name:
-                # Try to find by name if ID lookup fails
-                self.device2 = AudioDevice(device2_id, device2_name)
-                self.device2.initialize()
+        if device2_id or device2_name:
+            self.device2 = self._resolve_device(device2_id, device2_name, "device2")
+    
+    def _resolve_device(
+        self, device_id: Optional[str], device_name: Optional[str], slot: str
+    ) -> Optional[AudioDevice]:
+        """Resolve a device from config, with retries and name fallback.
+        
+        On startup (especially with auto-start at login), the audio subsystem
+        may not be ready yet. Device IDs can also change between sessions.
+        """
+        for attempt in range(3):
+            if device_id:
+                device = find_device_by_id(str(device_id))
+                if device:
+                    return device
+            if device_name:
+                device = find_device_by_name(device_name)
+                if device:
+                    # Update config with current ID (may have changed)
+                    if slot == "device1":
+                        self.config.set_device1(device.device_id, device.device_name)
+                    else:
+                        self.config.set_device2(device.device_id, device.device_name)
+                    return device
+            if attempt < 2:
+                time.sleep(0.5)  # Wait for audio subsystem to be ready
+        return None
     
     def _setup_linker(self) -> None:
         """Initialize the audio linker."""
